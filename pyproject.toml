@@ -1,0 +1,10 @@
+[project]
+name = "audio-manager"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "comtypes==1.4.10",
+    "pycaw==20240210",
+]
