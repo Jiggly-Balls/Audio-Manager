@@ -1,7 +1,7 @@
 [project]
 name = "audio-manager"
 version = "0.1.0"
-description = "Add your description here"
+description = "An audio manager for windows to manage and control audio levels for different applications."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
