@@ -8,3 +8,14 @@ dependencies = [
     "comtypes==1.4.10",
     "pycaw==20240210",
 ]
+
+[tool.ruff]
+line-length = 79
+lint.extend-select = ["ANN"]
+lint.ignore = ["ANN401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+docstring-code-line-length = 72
