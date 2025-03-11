@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def truncate_float(d: float, visible: int = 1) -> float:
-    d = str(d)
+    d: str = str(d)
     point_index = d.index(".")
     truncated = d[:point_index] + d[point_index : point_index + visible + 1]
     return float(truncated)

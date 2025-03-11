@@ -2,24 +2,30 @@ from __future__ import annotations
 
 import sys
 
-from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
+from ctypes import cast, POINTER
 from pycaw.pycaw import (
     AudioUtilities,
     IAudioEndpointVolume,
     ISimpleAudioVolume,
 )
-from PySide6 import QtWidgets
 from PySide6.QtWidgets import (
+    QApplication,
+    QScrollArea,
     QWidget,
     QLabel,
-    QSlider,
     QGroupBox,
     QFormLayout,
 )
 from typing import TYPE_CHECKING
 
-from core.config import FONT, OPACITY_LEVEL, TITLE_NAME, WINDOW_HEIGHT, WINDOW_WIDTH
+from core.config import (
+    FONT,
+    OPACITY_LEVEL,
+    TITLE_NAME,
+    WINDOW_HEIGHT,
+    WINDOW_WIDTH,
+)
 from core.helpers import truncate_float, VolumeSlider
 
 
@@ -31,7 +37,7 @@ class MainWidget(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
-        self.scroll_area = QtWidgets.QScrollArea(parent=self)
+        self.scroll_area: QScrollArea = QScrollArea(parent=self)
         self.scroll_area.setGeometry(
             0,
             0,
@@ -40,14 +46,14 @@ class MainWidget(QWidget):
         )
         self.scroll_area.setWidgetResizable(True)
 
-        self.labels = []
-        self.sliders = []
-        self.form_layout = QFormLayout()
-        group_box = QGroupBox("Volume Controller")
+        self.labels: list[QLabel] = []
+        self.sliders: list[VolumeSlider] = []
+        self.form_layout: QFormLayout = QFormLayout()
+        group_box: QGroupBox = QGroupBox("Volume Controller")
 
         self.create_master_slider()
 
-        all_sessions = AudioUtilities.GetAllSessions()
+        all_sessions: list[Any] = AudioUtilities.GetAllSessions()
 
         for session in all_sessions:
             volume = session._ctl.QueryInterface(ISimpleAudioVolume)
@@ -66,11 +72,13 @@ class MainWidget(QWidget):
         self.scroll_area.setWidget(group_box)
 
     def create_master_slider(self) -> None:
-        device = AudioUtilities.GetSpeakers()
-        interface = device.Activate(
-            IAudioEndpointVolume._iid_, CLSCTX_ALL, None
+        device: Any = AudioUtilities.GetSpeakers()
+        interface: Any = device.Activate(
+            IAudioEndpointVolume._iid_,  # pyright:ignore[reportPrivateUsage]
+            CLSCTX_ALL,
+            None,
         )
-        master_volume_controller = cast(
+        master_volume_controller: Any = cast(
             interface, POINTER(IAudioEndpointVolume)
         )
         master_volume = master_volume_controller.GetMasterVolumeLevelScalar()
@@ -81,7 +89,7 @@ class MainWidget(QWidget):
         percentage_label.setFont(FONT)
 
         slider = VolumeSlider(parent=self.scroll_area)
-        slider.setSliderPosition(master_volume * 10)
+        slider.setSliderPosition(int(master_volume * 10))
 
         def changedValue() -> None:
             changed_volume = slider.value()
@@ -99,7 +107,7 @@ class MainWidget(QWidget):
 
     def create_session_slider(
         self, volume_controller: Any
-    ) -> tuple[QSlider, QLabel]:
+    ) -> tuple[VolumeSlider, QLabel]:
         app_volume = volume_controller.GetMasterVolume()
         app_volume = truncate_float(app_volume * 100)
 
@@ -107,7 +115,7 @@ class MainWidget(QWidget):
         label.setFont(FONT)
 
         slider = VolumeSlider(parent=self.scroll_area)
-        slider.setSliderPosition(app_volume * 10)
+        slider.setSliderPosition(int(app_volume * 10))
 
         def changedValue() -> None:
             changed_volume = slider.value()
@@ -120,7 +128,7 @@ class MainWidget(QWidget):
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication([])
+    app = QApplication([])
 
     widget = MainWidget()
     widget.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
