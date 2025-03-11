@@ -2,6 +2,13 @@ from __future__ import annotations
 
 import sys
 
+from ctypes import cast, POINTER
+from comtypes import CLSCTX_ALL
+from pycaw.pycaw import (
+    AudioUtilities,
+    IAudioEndpointVolume,
+    ISimpleAudioVolume,
+)
 from PySide6 import QtWidgets
 from PySide6.QtWidgets import (
     QWidget,
@@ -12,16 +19,8 @@ from PySide6.QtWidgets import (
 )
 from typing import TYPE_CHECKING
 
-from config import FONT, OPACITY_LEVEL, TITLE_NAME, WINDOW_HEIGHT, WINDOW_WIDTH
-from helpers import truncate_float, VolumeSlider
-
-from ctypes import cast, POINTER
-from comtypes import CLSCTX_ALL
-from pycaw.pycaw import (
-    AudioUtilities,
-    IAudioEndpointVolume,
-    ISimpleAudioVolume,
-)
+from core.config import FONT, OPACITY_LEVEL, TITLE_NAME, WINDOW_HEIGHT, WINDOW_WIDTH
+from core.helpers import truncate_float, VolumeSlider
 
 
 if TYPE_CHECKING:
