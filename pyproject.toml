@@ -11,6 +11,11 @@ dependencies = [
     "pystray>=0.19.5",
 ]
 
+[dependency-groups]
+dev = [
+    "basedpyright>=1.28.1",
+]
+
 [tool.ruff]
 line-length = 79
 lint.extend-select = ["ANN"]
@@ -21,3 +26,12 @@ quote-style = "double"
 indent-style = "space"
 docstring-code-format = true
 docstring-code-line-length = 72
+
+[tool.basedpyright]
+exclude = ["**/node_modules", "**/__pycache__", "**/.*", "test.py"]
+reportUnusedCallResult = false
+reportMissingTypeStubs = false
+reportAssignmentType = false
+reportRedeclaration = false
+reportAny = false
+reportExplicitAny = false
