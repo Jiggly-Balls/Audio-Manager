@@ -40,8 +40,6 @@ class MainWidget(QWidget):
             WINDOW_HEIGHT,
         )
         self.scroll_area.setWidgetResizable(True)
-        # self.scroll_area.setFixedHeight(600)
-        # self.scroll_area.setMax
 
         self.labels = []
         self.sliders = []
@@ -103,21 +101,14 @@ class MainWidget(QWidget):
     def create_session_slider(
         self, volume_controller: Any
     ) -> tuple[QSlider, QLabel]:
-        # hbox = QHBoxLayout()
-        # hbox2 = QHBoxLayout()
-
         app_volume = volume_controller.GetMasterVolume()
         app_volume = truncate_float(app_volume * 100)
 
         label = QLabel(f"{app_volume}%", parent=self.scroll_area)
         label.setFont(FONT)
-        # label.setGeometry(WINDOW_WIDTH // 1.7, WINDOW_HEIGHT // 3, 250, 70)
 
         slider = VolumeSlider(parent=self.scroll_area)
         slider.setSliderPosition(app_volume * 10)
-
-        # slider.setGeometry(WINDOW_WIDTH // 3, WINDOW_HEIGHT // 2, 250, 50)
-        # slider.resize(100, 150)
 
         def changedValue() -> None:
             changed_volume = slider.value()
@@ -126,13 +117,6 @@ class MainWidget(QWidget):
 
         slider.valueChanged.connect(changedValue)
 
-        # hbox.addWidget(self.slider)
-        # hbox2.addWidget(self.label, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        # setLayout(hbox)
-        # setLayout(hbox2)
-        # label.show()
-        # slider.show()
         return slider, label
 
 
