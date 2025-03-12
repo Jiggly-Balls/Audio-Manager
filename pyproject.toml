@@ -9,6 +9,7 @@ dependencies = [
     "pycaw==20240210",
     "pyside6>=6.8.2.1",
     "pystray>=0.19.5",
+    "typing-extensions>=4.12.2",
 ]
 
 [dependency-groups]
@@ -29,6 +30,7 @@ docstring-code-line-length = 72
 
 [tool.basedpyright]
 exclude = ["**/node_modules", "**/__pycache__", "**/.*", "test.py"]
+reportImplicitStringConcatenation = false
 reportUnusedCallResult = false
 reportMissingTypeStubs = false
 reportAssignmentType = false
