@@ -21,7 +21,7 @@ from core.config import (
     WINDOW_HEIGHT,
     WINDOW_WIDTH,
 )
-from core.events import MasterVolumeEvent
+from core.events import MasterVolumeEvent, SessionVolumeEvent
 from core.helpers import truncate_float, VolumeSlider
 
 
@@ -53,7 +53,7 @@ class AppWidget(QWidget):
 
         for session in all_sessions:
             volume = session._ctl.QueryInterface(ISimpleAudioVolume)
-            volume.SetMasterVolume(1.0, None)
+            # volume.SetMasterVolume(1.0, None)
 
             if session.Process:
                 process_label = QLabel(session.Process.name())
@@ -63,6 +63,11 @@ class AppWidget(QWidget):
                 self.sliders.append(slider)
                 self.form_layout.addRow(process_label, percentage_label)
                 self.form_layout.addRow(slider)
+
+                session_callback = SessionVolumeEvent(
+                    session_volume_slider=slider
+                )
+                session.register_notification(session_callback)
 
         group_box.setLayout(self.form_layout)
         self.scroll_area.setWidget(group_box)
