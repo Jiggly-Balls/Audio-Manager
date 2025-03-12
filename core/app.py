@@ -21,6 +21,7 @@ from core.config import (
     WINDOW_HEIGHT,
     WINDOW_WIDTH,
 )
+from core.events import MasterVolumeEvent
 from core.helpers import truncate_float, VolumeSlider
 
 
@@ -85,6 +86,12 @@ class AppWidget(QWidget):
 
         slider = VolumeSlider(parent=self.scroll_area)
         slider.setSliderPosition(int(master_volume * 10))
+
+        master_callback = MasterVolumeEvent(master_volume_slider=slider)
+        master_volume_interface = interface.QueryInterface(
+            IAudioEndpointVolume
+        )
+        master_volume_interface.RegisterControlChangeNotify(master_callback)
 
         def changedValue() -> None:
             changed_volume = slider.value()

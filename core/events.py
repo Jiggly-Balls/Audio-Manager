@@ -4,12 +4,14 @@ from comtypes import COMObject
 from pycaw.callbacks import AudioSessionEvents
 from pycaw.pycaw import IAudioEndpointVolumeCallback
 from typing import TYPE_CHECKING
+from typing_extensions import override
 
+from core.helpers import truncate_float
 
 if TYPE_CHECKING:
     from comtypes import IUnknown
     from typing import Any, Literal, ClassVar
-    from typing_extensions import override
+    from core.helpers import VolumeSlider
 
 
 class InstanceVolumeEvent(AudioSessionEvents):
@@ -41,8 +43,17 @@ class MasterVolumeEvent(COMObject):
         IAudioEndpointVolumeCallback
     ]
 
+    def __init__(
+        self, *args: Any, master_volume_slider: VolumeSlider, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.master_volume_slider = master_volume_slider
+
     def OnNotify(self, p_notify: Any) -> None:
         # print(dir(pNotify))
-        print(dir(p_notify.contents))
+        self.master_volume_slider.setSliderPosition(
+            truncate_float(p_notify.contents.fMasterVolume, 4) * 1000
+        )
+        # print(dir(p_notify.contents))
         print(f"MASTER VOL: {p_notify.contents.fMasterVolume}")
         print(f"MUTED: {p_notify.contents.bMuted}\n")
