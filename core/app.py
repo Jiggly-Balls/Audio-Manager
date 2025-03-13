@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import threading
+import time
+
 from comtypes import CLSCTX_ALL
 from ctypes import cast, POINTER
 from pycaw.pycaw import (
@@ -33,6 +36,7 @@ class AppWidget(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
+        self.running = True
         self.scroll_area: QScrollArea = QScrollArea(parent=self)
         self.scroll_area.setGeometry(
             0,
@@ -45,6 +49,7 @@ class AppWidget(QWidget):
         self.labels: list[QLabel] = []
         self.sliders: list[VolumeSlider] = []
         self.form_layout: QFormLayout = QFormLayout()
+        self.slider_map: dict[str, VolumeSlider] = {}
         group_box = QGroupBox("Volume Controller")
 
         self.create_master_slider()
@@ -56,8 +61,10 @@ class AppWidget(QWidget):
             # volume.SetMasterVolume(1.0, None)
 
             if session.Process:
-                process_label = QLabel(session.Process.name())
+                name = session.Process.name()
+                process_label = QLabel(name)
                 slider, percentage_label = self.create_session_slider(volume)
+                self.slider_map[name] = slider
 
                 self.labels.append(process_label)
                 self.sliders.append(slider)
@@ -71,6 +78,35 @@ class AppWidget(QWidget):
 
         group_box.setLayout(self.form_layout)
         self.scroll_area.setWidget(group_box)
+
+        self.app_session_registry_thread = threading.Thread(
+            target=self.app_session_registry
+        )
+        self.app_session_registry_thread.start()
+
+    def app_session_registry(self) -> None:
+        while self.running:
+            # print("CHECK\n")
+            all_sessions: list[Any] = AudioUtilities.GetAllSessions()
+            current_apps: set[str] = set()
+
+            for session in all_sessions:
+                volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+                # volume.SetMasterVolume(1.0, None)
+
+                if session.Process:
+                    app_name = session.Process.name()
+                    current_apps.add(app_name)
+                    if app_name not in self.slider_map:
+                        print(f"NEW APP: {app_name}")
+
+            old_apps = set(self.slider_map.keys())
+            new_apps = current_apps - (old_apps & current_apps)
+            closed_apps = old_apps - (old_apps & current_apps)
+
+            print(f"\nOPENED: {new_apps}")
+            print(f"CLOSED: {closed_apps}")
+            time.sleep(1)
 
     def create_master_slider(self) -> None:
         device: Any = AudioUtilities.GetSpeakers()
