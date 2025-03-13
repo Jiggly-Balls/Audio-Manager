@@ -30,7 +30,9 @@ docstring-code-format = true
 docstring-code-line-length = 72
 
 [tool.basedpyright]
-exclude = ["**/node_modules", "**/__pycache__", "**/.*", "test.py"]
+exclude = ["**/node_modules", "**/__pycache__", "**/.*", "test*.py"]
+reportImportCycles = false
+reportUnnecessaryIsInstance = false
 reportImplicitStringConcatenation = false
 reportUnusedCallResult = false
 reportMissingTypeStubs = false
