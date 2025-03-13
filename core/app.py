@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
 from typing import final, TYPE_CHECKING
 
 from core.config import (
+    EVENT_REGISTRY_SLEEP,
     FONT,
     WINDOW_HEIGHT,
     WINDOW_WIDTH,
@@ -149,7 +150,7 @@ class AppWidget(QWidget):
                     )
                 )
 
-            time.sleep(2)
+            time.sleep(EVENT_REGISTRY_SLEEP)
 
     def create_master_slider(self) -> None:
         device: Any = AudioUtilities.GetSpeakers()
