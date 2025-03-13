@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import threading
 import time
+import psutil
 
 from comtypes import CLSCTX_ALL
 from ctypes import cast, POINTER
@@ -10,6 +11,7 @@ from pycaw.pycaw import (
     IAudioEndpointVolume,
     ISimpleAudioVolume,
 )
+from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
     QScrollArea,
     QWidget,
@@ -25,7 +27,7 @@ from core.config import (
     WINDOW_WIDTH,
 )
 from core.events import MasterVolumeEvent, SessionVolumeEvent
-from core.helpers import truncate_float, VolumeSlider
+from core.helpers import OpenedApps, ClosedApps, truncate_float, VolumeSlider
 
 
 if TYPE_CHECKING:
@@ -33,8 +35,13 @@ if TYPE_CHECKING:
 
 
 class AppWidget(QWidget):
+    speak = Signal((OpenedApps,), (ClosedApps,))
+
     def __init__(self) -> None:
         super().__init__()
+
+        self.speak[OpenedApps].connect(self.app_session_event)
+        self.speak[ClosedApps].connect(self.app_session_event)
 
         self.running = True
         self.scroll_area: QScrollArea = QScrollArea(parent=self)
@@ -46,10 +53,8 @@ class AppWidget(QWidget):
         )
         self.scroll_area.setWidgetResizable(True)
 
-        self.labels: list[QLabel] = []
-        self.sliders: list[VolumeSlider] = []
         self.form_layout: QFormLayout = QFormLayout()
-        self.slider_map: dict[str, VolumeSlider] = {}
+        self.slider_map: dict[str, tuple[VolumeSlider, QLabel]] = {}
         group_box = QGroupBox("Volume Controller")
 
         self.create_master_slider()
@@ -58,16 +63,13 @@ class AppWidget(QWidget):
 
         for session in all_sessions:
             volume = session._ctl.QueryInterface(ISimpleAudioVolume)
-            # volume.SetMasterVolume(1.0, None)
 
             if session.Process:
                 name = session.Process.name()
                 process_label = QLabel(name)
                 slider, percentage_label = self.create_session_slider(volume)
-                self.slider_map[name] = slider
+                self.slider_map[name] = (slider, process_label)
 
-                self.labels.append(process_label)
-                self.sliders.append(slider)
                 self.form_layout.addRow(process_label, percentage_label)
                 self.form_layout.addRow(slider)
 
@@ -84,29 +86,69 @@ class AppWidget(QWidget):
         )
         self.app_session_registry_thread.start()
 
+    @Slot(OpenedApps)
+    @Slot(ClosedApps)
+    def app_session_event(self, apps_data: OpenedApps | ClosedApps) -> None:
+        if isinstance(apps_data, OpenedApps):
+            for app in apps_data.apps:
+                if app not in self.slider_map:
+                    session = apps_data.session_map[app]
+                    volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+                    slider, percentage_label = self.create_session_slider(
+                        volume
+                    )
+
+                    process_label = QLabel(app)
+
+                    self.form_layout.addRow(process_label, percentage_label)
+                    self.form_layout.addRow(slider)
+
+                    session_callback = SessionVolumeEvent(
+                        session_volume_slider=slider
+                    )
+                    session.register_notification(session_callback)
+
+                    self.slider_map[app] = (slider, process_label)
+
+        elif isinstance(apps_data, ClosedApps):
+            for app in apps_data.apps:
+                if app in self.slider_map:
+                    for w in self.slider_map[app]:
+                        self.form_layout.removeRow(w)
+                    del self.slider_map[app]
+
     def app_session_registry(self) -> None:
         while self.running:
-            # print("CHECK\n")
             all_sessions: list[Any] = AudioUtilities.GetAllSessions()
             current_apps: set[str] = set()
+            current_session_map: dict[str, Any] = {}
 
             for session in all_sessions:
-                volume = session._ctl.QueryInterface(ISimpleAudioVolume)
-                # volume.SetMasterVolume(1.0, None)
-
                 if session.Process:
-                    app_name = session.Process.name()
+                    try:
+                        app_name = session.Process.name()
+                    except psutil.NoSuchProcess:
+                        continue
+
                     current_apps.add(app_name)
-                    if app_name not in self.slider_map:
-                        print(f"NEW APP: {app_name}")
+                    current_session_map[app_name] = session
 
             old_apps = set(self.slider_map.keys())
             new_apps = current_apps - (old_apps & current_apps)
             closed_apps = old_apps - (old_apps & current_apps)
 
-            print(f"\nOPENED: {new_apps}")
-            print(f"CLOSED: {closed_apps}")
-            time.sleep(1)
+            if closed_apps:
+                self.speak[ClosedApps].emit(ClosedApps(apps=closed_apps))
+
+            if new_apps:
+                self.speak[OpenedApps].emit(
+                    OpenedApps(
+                        apps=new_apps,
+                        session_map=current_session_map,
+                    )
+                )
+
+            time.sleep(2)
 
     def create_master_slider(self) -> None:
         device: Any = AudioUtilities.GetSpeakers()
@@ -122,10 +164,12 @@ class AppWidget(QWidget):
         master_volume = truncate_float(master_volume * 100)
 
         process_label = QLabel("MASTER VOLUME")
-        percentage_label = QLabel(f"{master_volume}%", parent=self.scroll_area)
+        percentage_label = QLabel(
+            f"{master_volume}%",
+        )
         percentage_label.setFont(FONT)
 
-        slider = VolumeSlider(parent=self.scroll_area)
+        slider = VolumeSlider()
         slider.setSliderPosition(int(master_volume * 10))
 
         master_callback = MasterVolumeEvent(master_volume_slider=slider)
@@ -143,8 +187,6 @@ class AppWidget(QWidget):
 
         slider.valueChanged.connect(changedValue)
 
-        self.labels.append(process_label)
-        self.sliders.append(slider)
         self.form_layout.addRow(process_label, percentage_label)
         self.form_layout.addRow(slider)
 
@@ -154,10 +196,10 @@ class AppWidget(QWidget):
         app_volume = volume_controller.GetMasterVolume()
         app_volume = truncate_float(app_volume * 100)
 
-        label = QLabel(f"{app_volume}%", parent=self.scroll_area)
+        label = QLabel(f"{app_volume}%")
         label.setFont(FONT)
 
-        slider = VolumeSlider(parent=self.scroll_area)
+        slider = VolumeSlider()
         slider.setSliderPosition(int(app_volume * 10))
 
         def changedValue() -> None:
