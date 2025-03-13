@@ -172,4 +172,4 @@ cython_debug/
 
 
 # Local folders / files
-test.py
+test*.py
