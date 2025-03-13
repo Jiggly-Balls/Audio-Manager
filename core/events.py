@@ -6,12 +6,13 @@ from pycaw.pycaw import IAudioEndpointVolumeCallback
 from typing import TYPE_CHECKING
 from typing_extensions import final, override
 
-from core.helpers import truncate_float
+import core
 
 if TYPE_CHECKING:
     from comtypes import IUnknown
     from typing import Any, ClassVar, Literal
     from core.helpers import VolumeSlider
+    import core.helpers
 
 
 @final
@@ -27,7 +28,7 @@ class SessionVolumeEvent(AudioSessionEvents):
         self, new_volume: float, new_mute: int, event_context: Any
     ) -> None:
         self.session_volume_slider.setSliderPosition(
-            int(truncate_float(new_volume, 4) * 1000)
+            int(core.helpers.truncate_float(new_volume, 4) * 1000)
         )
         # print(
         #     ":: OnSimpleVolumeChanged callback\n"
@@ -63,7 +64,10 @@ class MasterVolumeEvent(COMObject):
 
     def OnNotify(self, p_notify: Any) -> None:
         self.master_volume_slider.setSliderPosition(
-            int(truncate_float(p_notify.contents.fMasterVolume, 4) * 1000)
+            int(
+                core.helpers.truncate_float(p_notify.contents.fMasterVolume, 4)
+                * 1000
+            )
         )
         # print(f"MASTER VOL: {p_notify.contents.fMasterVolume}")
         # print(f"MUTED: {p_notify.contents.bMuted}\n")
