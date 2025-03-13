@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QFormLayout,
 )
-from typing import TYPE_CHECKING
+from typing import final, TYPE_CHECKING
 
 from core.config import (
     FONT,
@@ -34,14 +34,15 @@ if TYPE_CHECKING:
     from typing import Any
 
 
+@final
 class AppWidget(QWidget):
-    speak = Signal((OpenedApps,), (ClosedApps,))
+    speak = Signal((OpenedApps,), (ClosedApps,))  # pyright:ignore[reportArgumentType]
 
     def __init__(self) -> None:
         super().__init__()
 
-        self.speak[OpenedApps].connect(self.app_session_event)
-        self.speak[ClosedApps].connect(self.app_session_event)
+        self.speak[OpenedApps].connect(self.app_session_event)  # pyright:ignore[reportIndexIssue, reportUnknownMemberType]
+        self.speak[ClosedApps].connect(self.app_session_event)  # pyright:ignore[reportIndexIssue, reportUnknownMemberType]
 
         self.running = True
         self.scroll_area: QScrollArea = QScrollArea(parent=self)
@@ -87,7 +88,7 @@ class AppWidget(QWidget):
         self.app_session_registry_thread.start()
 
     @Slot(OpenedApps)
-    @Slot(ClosedApps)
+    @Slot(ClosedApps)  # pyright:ignore[reportArgumentType]
     def app_session_event(self, apps_data: OpenedApps | ClosedApps) -> None:
         if isinstance(apps_data, OpenedApps):
             for app in apps_data.apps:
@@ -138,10 +139,10 @@ class AppWidget(QWidget):
             closed_apps = old_apps - (old_apps & current_apps)
 
             if closed_apps:
-                self.speak[ClosedApps].emit(ClosedApps(apps=closed_apps))
+                self.speak[ClosedApps].emit(ClosedApps(apps=closed_apps))  # pyright:ignore[reportIndexIssue, reportUnknownMemberType]
 
             if new_apps:
-                self.speak[OpenedApps].emit(
+                self.speak[OpenedApps].emit(  # pyright:ignore[reportIndexIssue, reportUnknownMemberType]
                     OpenedApps(
                         apps=new_apps,
                         session_map=current_session_map,
