@@ -11,6 +11,13 @@ from core.config import (
 )
 
 
+__version__ = "1.0.0"
+__title__ = "Audio-Manager"
+__author__ = "Jiggly Balls"
+__license__ = "MIT License"
+__copyright__ = "Copyright 2024-present Jiggly Balls"
+
+
 if __name__ == "__main__":
     app = QApplication([])
 
