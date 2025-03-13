@@ -1,4 +1,3 @@
-import threading
 import sys
 
 from PySide6.QtWidgets import QApplication
@@ -13,19 +12,14 @@ from core.config import (
 
 
 if __name__ == "__main__":
+    app = QApplication([])
 
-    def main() -> None:
-        app = QApplication([])
+    widget = AppWidget()
+    widget.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+    widget.setWindowTitle(TITLE_NAME)
+    widget.setWindowOpacity(OPACITY_LEVEL)
+    widget.show()
 
-        widget = AppWidget()
-        widget.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
-        widget.setWindowTitle(TITLE_NAME)
-        widget.setWindowOpacity(OPACITY_LEVEL)
-        widget.show()
-
-        exit_code = app.exec()
-        widget.running = False
-        sys.exit(exit_code)
-
-    main_thread = threading.Thread(target=main)
-    main_thread.start()
+    exit_code = app.exec()
+    widget.running = False
+    sys.exit(exit_code)
