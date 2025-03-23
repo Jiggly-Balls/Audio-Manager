@@ -19,6 +19,7 @@ dev = [
     "basedpyright>=1.28.1",
     "isort>=6.0.1",
     "nuitka>=2.6.8",
+    "pre-commit>=4.2.0",
     "ruff>=0.11.0",
 ]
 
