@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import threading
 import time
-import psutil
+from ctypes import POINTER, cast
+from typing import TYPE_CHECKING, final
 
+import psutil
 from comtypes import CLSCTX_ALL
-from ctypes import cast, POINTER
 from pycaw.pycaw import (
     AudioUtilities,
     IAudioEndpointVolume,
@@ -13,23 +14,17 @@ from pycaw.pycaw import (
 )
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
+    QFormLayout,
+    QGroupBox,
+    QLabel,
     QScrollArea,
     QWidget,
-    QLabel,
-    QGroupBox,
-    QFormLayout,
 )
-from typing import final, TYPE_CHECKING
 
-from core.config import (
-    EVENT_REGISTRY_SLEEP,
-    FONT,
-    WINDOW_HEIGHT,
-    WINDOW_WIDTH,
-)
+from core.config import EVENT_REGISTRY_SLEEP, FONT, WINDOW_HEIGHT, WINDOW_WIDTH
 from core.events import MasterVolumeEvent, SessionVolumeEvent
-from core.helpers import OpenedApps, ClosedApps, truncate_float, VolumeSlider
-
+from core.helpers import ClosedApps, OpenedApps, VolumeSlider, truncate_float
+from core.icon_tray import IconTray
 
 if TYPE_CHECKING:
     from typing import Any
@@ -87,6 +82,7 @@ class AppWidget(QWidget):
             target=self.app_session_registry
         )
         self.app_session_registry_thread.start()
+        self.icon_tray = IconTray()
 
     @Slot(OpenedApps)
     @Slot(ClosedApps)  # pyright:ignore[reportArgumentType]

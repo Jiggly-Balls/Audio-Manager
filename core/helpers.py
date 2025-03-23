@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from PySide6.QtWidgets import QSlider
-from PySide6.QtCore import Qt
 from typing import TYPE_CHECKING
 
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QSlider
 
 if TYPE_CHECKING:
     from typing import Any

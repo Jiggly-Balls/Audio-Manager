@@ -1,18 +1,21 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from comtypes import COMObject
 from pycaw.callbacks import AudioSessionEvents
 from pycaw.pycaw import IAudioEndpointVolumeCallback
-from typing import TYPE_CHECKING
 from typing_extensions import final, override
 
 import core
 
 if TYPE_CHECKING:
-    from comtypes import IUnknown
     from typing import Any, ClassVar, Literal
-    from core.helpers import VolumeSlider
+
+    from comtypes import IUnknown
+
     import core.helpers
+    from core.helpers import VolumeSlider
 
 
 @final
