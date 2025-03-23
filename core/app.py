@@ -10,7 +10,7 @@ from comtypes import CLSCTX_ALL
 from pycaw.pycaw import (
     AudioUtilities,
     IAudioEndpointVolume,
-    ISimpleAudioVolume
+    ISimpleAudioVolume,
 )
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QLabel,
     QScrollArea,
-    QWidget
+    QWidget,
 )
 
 from core.config import EVENT_REGISTRY_SLEEP, FONT, WINDOW_HEIGHT, WINDOW_WIDTH
