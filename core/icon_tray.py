@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from pystray._win32 import Icon
 
 
-def create_image(width: int, height: int, color1: str, color2: str) -> None:
+def create_image(width: int, height: int, color1: str, color2: str) -> Image:
     # Generate an image and draw a pattern
     image = Image.new("RGB", (width, height), color1)
     dc = ImageDraw.Draw(image)
